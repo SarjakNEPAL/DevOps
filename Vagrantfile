@@ -6,7 +6,7 @@ Vagrant.configure("2") do |config|
   config.vm.define "web-server" do |web|
     web.vm.box = "ubuntu/focal64" #os used
     web.vm.hostname = "web-server" # name of the host
-    web.vm.network "public_network"    
+    web.vm.network "private_network",ip: '192.168.1.70'    
     web.vm.provision "shell", inline: <<-SHELL  
       # Update and install Apache, PHP, and other dependencies
       sudo apt-get update
@@ -41,21 +41,13 @@ rm default-ssl.conf
 
       
 # wordpress and database connecting
-    sudo -u www-data cp /srv/www/html/wp-config-sample.php /srv/www/html/wp-config.php
-    sudo -u www-data sed -i 's/database_name_here/wordpress/' /srv/www/html/wp-config.php 
-    sudo -u www-data sed -i 's/username_here/wordpress/' /srv/www/html/wp-config.php
-    sudo -u www-data sed -i 's/password_here/wordpress/' /srv/www/html/wp-config.php
-    sudo -u www-data sed -i 's/localhost/192.168.0.155/' /srv/www/html/wp-config.php
+sudo -u www-data cp /srv/www/wordpress/wp-config-sample.php /srv/www/wordpress/wp-config.php
+    sudo -u www-data sed -i 's/database_name_here/wordpress/' /srv/www/wordpress/wp-config.php
+    sudo -u www-data sed -i 's/username_here/wordpress/' /srv/www/wordpress/wp-config.php
+    sudo -u www-data sed -i 's/password_here/1234567890/' /srv/www/wordpress/wp-config.php
+    sudo -u www-data sed -i 's/localhost/192.168.1.100/' /srv/www/html/wp-config.php
     
-    # # Delete specific lines from wp-config.php
-    # sudo sed -i '/define( '\''AUTH_KEY'\'',/d' /srv/www/html/wp-config.php
-    # sudo sed -i '/define( '\''SECURE_AUTH_KEY'\'',/d' /srv/www/html/wp-config.php
-    # sudo sed -i '/define( '\''LOGGED_IN_KEY'\'',/d' /srv/www/html/wp-config.php
-    # sudo sed -i '/define( '\''NONCE_KEY'\'',/d' /srv/www/html/wp-config.php
-    # sudo sed -i '/define( '\''AUTH_SALT'\'',/d' /srv/www/html/wp-config.php
-    # sudo sed -i '/define( '\''SECURE_AUTH_SALT'\'',/d' /srv/www/html/wp-config.php
-    # sudo sed -i '/define( '\''LOGGED_IN_SALT'\'',/d' /srv/www/html/wp-config.php
-    # sudo sed -i '/define( '\''NONCE_SALT'\'',/d' /srv/www/html/wp-config.php
+
 
     sudo systemctl restart apache2
     SHELL

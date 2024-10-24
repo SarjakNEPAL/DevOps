@@ -3,7 +3,7 @@ Vagrant.configure("2") do |config|
   config.vm.define "db-server" do |db|
     db.vm.box = "ubuntu/focal64"
     db.vm.hostname = "db-server"
-    db.vm.network "public_network", ip: "192.168.0.155"
+    db.vm.network "private_network", ip: "192.168.1.100"
     
     db.vm.provision "shell", inline: <<-SHELL
       # Update and install MySQL server
@@ -12,14 +12,12 @@ Vagrant.configure("2") do |config|
       sudo systemctl start mysql
       sudo systemctl enable mysql
       
-      # Write SQL commands to a file
-      echo "CREATE DATABASE wordpress;
-      CREATE USER 'wordpress'@'%' IDENTIFIED BY 'wordpress';
-      GRANT ALL PRIVILEGES ON wordpress.* TO 'wordpress'@'%';
-      FLUSH PRIVILEGES;" > /tmp/setup.sql
-      
-      # Run the SQL file
-      sudo mysql < /tmp/setup.sql
+    mysql -u root -e 'CREATE DATABASE wordpress;'
+    mysql -u root -e 'CREATE USER wordpress@% IDENTIFIED BY "1234567890";'
+    mysql -u root -e 'GRANT SELECT,INSERT,UPDATE,DELETE,CREATE,DROP,ALTER ON wordpress.* TO wordpress@%;'
+    mysql -u root -e 'FLUSH PRIVILEGES;'
+
+    systemctl restart mysql
     SHELL
   end
 end
