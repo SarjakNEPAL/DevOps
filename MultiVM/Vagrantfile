@@ -7,7 +7,6 @@ Vagrant.configure("2") do |config|
     
     db.vm.provision "shell", path:'sqlinstall.sh'
   end
-  
    config.vm.define "apache-server" do |web|
 	  # then creating webserver
   web.vm.box = "ubuntu/focal64" #os used
