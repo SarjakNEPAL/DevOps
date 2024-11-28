@@ -1,11 +1,3 @@
-Vagrant.configure("2") do |config|
-  # First creating the database
-  config.vm.define "db-server" do |db|
-    db.vm.box = "ubuntu/focal64"
-    db.vm.hostname = "db-server"
-    db.vm.network "private_network", ip: "192.168.1.100"
-    
-    db.vm.provision "shell", inline: <<-SHELL
       # Update and install MySQL server
       sudo apt-get update
       sudo apt-get install -y mysql-server
@@ -17,10 +9,6 @@ Vagrant.configure("2") do |config|
     mysql -u root -e 'GRANT SELECT,INSERT,UPDATE,DELETE,CREATE,DROP,ALTER ON wordpress.* TO "wordpress"@"%";'
     mysql -u root -e 'FLUSH PRIVILEGES;'
 
-    sudo sed -i 's/^bind-address.*/bind-address = 0.0.0.0/' /etc/mysql/mysql.conf.d/mysqld.cnf
-
+    sudo sed -i 's/^bind-address.*/bind-address = 0.0.0.0/' /etc/mysql/mysql.conf.d/mysqld.cnf # Fixing the eroor of server refusing other remote acccess
 
     systemctl restart mysql
-    SHELL
-  end
-end
