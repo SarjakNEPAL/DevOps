@@ -1,0 +1,22 @@
+Vagrant.configure("2") do |config|
+  # First creating the database
+  config.vm.define "db-server" do |db|
+    db.vm.box = "ubuntu/focal64"
+    db.vm.hostname = "db-server"
+    db.vm.network "private_network", ip: "192.168.1.100"
+    
+    db.vm.provision "shell", path:'sqlinstall.sh'
+  end
+   config.vm.define "apache-server" do |web|
+	  # then creating webserver
+  web.vm.box = "ubuntu/focal64" #os used
+  web.vm.hostname = "web-server" # name of the host
+  web.vm.network "private_network", ip: "192.168.33.10" # giving static ip
+  
+  web.vm.provision "shell", path:'apacheinstall.sh'
+  end
+end
+
+# change the ip to some other number
+# put scripts in separate files
+# make in single vagrant multi vm

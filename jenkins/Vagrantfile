@@ -1,0 +1,28 @@
+# Vagrantfile for multi-VM setup with two Ubuntu Focal 64 machines
+
+Vagrant.configure("2") do |config|
+  # Define the base box
+  config.vm.box = "ubuntu/focal64"
+
+  # VM1 configuration
+  config.vm.define "master" do |vm1|
+    vm1.vm.hostname = "jenkins"
+    vm1.vm.network "public_network", ip: "192.168.0.201"
+    vm1.vm.provider "virtualbox" do |vb|
+      vb.memory = "4000"
+      vb.cpus = 4
+    end
+      vm1.vm.provision "shell", path:"./scripts/install.sh"
+  end
+
+  # VM2 configuration
+  config.vm.define "manager0" do |vm2|
+    vm2.vm.hostname = "vm2"
+    vm2.vm.network "private_network"
+    vm2.vm.provider "virtualbox" do |vb|
+      vb.memory = "1024"
+      vb.cpus = 1
+    end
+    vm1.vm.provision "shell", path:"./scripts/install.sh"
+  end
+end
