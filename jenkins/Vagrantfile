@@ -12,17 +12,16 @@ Vagrant.configure("2") do |config|
       vb.memory = "4000"
       vb.cpus = 4
     end
-      vm1.vm.provision "shell", path:"./scripts/install.sh"
+      vm1.vm.provision "shell", path:"../scripts/install-jenkins.sh"
   end
 
   # VM2 configuration
   config.vm.define "manager0" do |vm2|
     vm2.vm.hostname = "vm2"
-    vm2.vm.network "private_network"
+    vm2.vm.network "public_network"
     vm2.vm.provider "virtualbox" do |vb|
       vb.memory = "1024"
       vb.cpus = 1
     end
-    vm1.vm.provision "shell", path:"./scripts/install.sh"
   end
 end
