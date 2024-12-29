@@ -1,0 +1,26 @@
+pipeline{
+    agent any
+    
+    stages{
+        stage('Build'){
+            steps{
+                echo "Building My App"
+            }
+        }
+        stage('UnitTest'){
+            steps{
+                echo "Running Unit Test"
+            }
+        }
+        stage('TestEnvDeploy'){
+            steps{
+                echo "Deploying to Test env"
+            }
+        }
+        stage('StageEnvDeploy'){
+            steps{
+                echo "Deploying to Stage env"
+            }
+        }
+    }
+}
