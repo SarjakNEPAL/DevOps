@@ -1,0 +1,126 @@
+pipeline {
+    agent {
+        label 'SlaveNode'
+    }
+    environment { 
+        MAVEN_HOME = '/opt/apache-maven-3.9.9'
+        PATH = "${MAVEN_HOME}/bin:${env.PATH}"
+        WEB_REPO=read
+    }
+    stages {
+        stage('cleaning directory') {
+            steps {
+                echo "removing workspace"
+                sh 'pwd'
+                sh 'rm -rf ./*'
+            }
+            post {
+                success {
+                    echo "<><><><><><><><><><><><><>"
+                    echo "<>  Cleaning Success    <>"
+                    echo "<><><><><><><><><><><><><>"
+                }
+                failure {
+                    echo "<><><><><><><><><><><><><>"
+                    echo "<>  Cleaning failed     <>"
+                    echo "<><><><><><><><><><><><><>"
+                }
+            }
+        }
+        stage('CloningGit') {
+            steps {
+                echo "<><><><><><><><><><>"
+                echo "<>  Cloning Repo  <>"
+                echo "<><><><><><><><><><>"
+                sh 'git clone ${WEB_GIT}'
+            }
+        }
+        stage('checkingMaven') {
+            steps {
+                sh 'mvn -version'
+            }
+        }
+        stage('testing') {
+            steps {
+                echo "<><><><><><><><><><><><><>"
+                echo "<>  Testing Package     <>"
+                echo "<><><><><><><><><><><><><>"
+                sh 'mvn -f JenkinsTask/pom.xml clean test'
+            }
+            post {
+                success {
+                    echo "<><><><><><><><><><><><><>"
+                    echo "<>  Testing Success     <>"
+                    echo "<><><><><><><><><><><><><>"
+                }
+                failure {
+                    echo "<><><><><><><><><><><><><>"
+                    echo "<>  Testing failed     <>"
+                    echo "<><><><><><><><><><><><><>"
+                }
+            }
+        }
+        stage('Building the app\' war file') {
+            steps {
+                echo "<><><><><><><><><><><><><>"
+                echo "<>  Building from Pom  <>"
+                echo "<><><><><><><><><><><><><>"
+                sh 'mvn -f JenkinsTask/pom.xml package'
+            }
+        }
+         stage('creating app image') {
+            steps { 
+                echo "Building docker image" 
+                sh 'docker pull tomcat:latest' 
+                sh 'original_pwd=$(pwd -P)' 
+                sh'docker build -f ./JenkinsTask/Dockerfile -t tomcat_app:$BUILD_NUMBER .' 
+                sh 'cd $original_pwd' 
+                } 
+            }
+            stage('Deploy to StagingEnvironment') {
+                steps {
+                    echo "Running app on staging env"
+                    sh '''
+                    docker stop stagingEnv || true
+                    docker rm stagingEnv || true
+                    docker run -itd --name stagingEnv -p 2025:8080 tomcat_app:$BUILD_NUMBER
+                    '''
+                }
+            }
+        stage('Depoying To Production') {
+            steps {
+                timeout(time: 2, unit: 'DAYS') {
+                    input message: 'Do you approve?'
+                }
+                echo "Running app on productionEnvironment"
+                sh '''
+                docker stop productionEnv || true
+                docker rm productionEnv || true
+                docker run -itd --name productionEnv -p 2085:8080 tomcat_app:$BUILD_NUMBER
+                '''
+            }
+        }
+    }
+    post {
+        success {
+            mail to: 'sarjakytdfiles@gmail.com',
+                 subject: 'BUILD SUCCESS NOTIFICATION',
+                 body: """Hi Sarjak,
+
+Build #${BUILD_NUMBER} is successful, please go through the url: ${BUILD_URL}
+
+Regards,
+Jenkins"""
+        }
+        failure {
+            mail to: 'sarjakytdfiles@gmail.com',
+                 subject: 'BUILD FAILED NOTIFICATION',
+                 body: """Hi Sarjak,
+
+Build #${BUILD_NUMBER} failed, please go through the url: ${BUILD_URL}
+
+Regards,
+Jenkins"""
+        }
+    }
+}
